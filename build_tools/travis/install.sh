@@ -74,7 +74,8 @@ elif [[ "$DISTRIB" == "ubuntu" ]]; then
     # and scipy
     virtualenv --system-site-packages testvenv
     source testvenv/bin/activate
-    pip install nose nose-timer cython
+    pip install https://github.com/cython/cython/archive/master.zip --install-option=--no-cython-compile
+    pip install nose nose-timer
 
 elif [[ "$DISTRIB" == "scipy-dev-wheels" ]]; then
     # Set up our own virtualenv environment to avoid travis' numpy.
@@ -89,7 +90,8 @@ elif [[ "$DISTRIB" == "scipy-dev-wheels" ]]; then
     pip install --pre --upgrade --no-index --timeout=60 \
         --trusted-host travis-dev-wheels.scipy.org \
         -f https://travis-dev-wheels.scipy.org/ numpy scipy
-    pip install nose nose-timer cython
+    pip install https://github.com/cython/cython/archive/master.zip --install-option=--no-cython-compile
+    pip install nose nose-timer
 fi
 
 if [[ "$COVERAGE" == "true" ]]; then
