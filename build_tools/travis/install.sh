@@ -53,13 +53,14 @@ if [[ "$DISTRIB" == "conda" ]]; then
     if [[ "$INSTALL_MKL" == "true" ]]; then
         conda create -n testenv --yes python=$PYTHON_VERSION pip nose \
             numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION numpy scipy \
-            cython=$CYTHON_VERSION libgfortran mkl flake8
+            libgfortran mkl flake8
     else
         conda create -n testenv --yes python=$PYTHON_VERSION pip nose \
-            numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION cython=$CYTHON_VERSION \
+            numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION \
             libgfortran nomkl
     fi
     source activate testenv
+    pip install https://github.com/cython/cython/archive/master.zip --install-option=--no-cython-compile
 
     # Install nose-timer via pip
     pip install nose-timer
