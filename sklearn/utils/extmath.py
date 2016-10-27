@@ -25,7 +25,7 @@ from ._logistic_sigmoid import _log_logistic_sigmoid
 from ..externals.six.moves import xrange
 from .sparsefuncs_fast import csr_row_norms
 from .validation import check_array
-from ..exceptions import NonBLASDotWarning
+from ..exceptions import ConvergenceWarning, NonBLASDotWarning
 
 
 def norm(x):
@@ -349,7 +349,7 @@ def randomized_svd(M, n_components, n_oversamples=10, n_iter='auto',
     n_random = n_components + n_oversamples
     n_samples, n_features = M.shape
 
-    if n_iter is 'auto':
+    if n_iter == 'auto':
         # Checks if the number of iterations is explicitely specified
         # Adjust n_iter. 7 was found a good compromise for PCA. See #5299
         n_iter = 7 if n_components < .1 * min(M.shape) else 4
@@ -842,3 +842,32 @@ def _deterministic_vector_sign_flip(u):
     signs = np.sign(u[range(u.shape[0]), max_abs_rows])
     u *= signs[:, np.newaxis]
     return u
+
+
+def stable_cumsum(arr, axis=None, rtol=1e-05, atol=1e-08):
+    """Use high precision for cumsum and check that final value matches sum
+
+    Parameters
+    ----------
+    arr : array-like
+        To be cumulatively summed as flat
+    axis : int, optional
+        Axis along which the cumulative sum is computed.
+        The default (None) is to compute the cumsum over the flattened array.
+    rtol : float
+        Relative tolerance, see ``np.allclose``
+    atol : float
+        Absolute tolerance, see ``np.allclose``
+    """
+    # sum is as unstable as cumsum for numpy < 1.9
+    if np_version < (1, 9):
+        return np.cumsum(arr, axis=axis, dtype=np.float64)
+
+    out = np.cumsum(arr, axis=axis, dtype=np.float64)
+    expected = np.sum(arr, axis=axis, dtype=np.float64)
+    if not np.all(np.isclose(out.take(-1, axis=axis), expected, rtol=rtol,
+                             atol=atol, equal_nan=True)):
+        warnings.warn('cumsum was found to be unstable: '
+                      'its last element does not correspond to sum',
+                      ConvergenceWarning)
+    return out

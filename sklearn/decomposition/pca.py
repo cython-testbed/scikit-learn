@@ -15,6 +15,7 @@ from math import log, sqrt
 import numpy as np
 from scipy import linalg
 from scipy.special import gammaln
+from scipy.sparse import issparse
 
 from ..externals import six
 
@@ -24,6 +25,7 @@ from ..utils import deprecated
 from ..utils import check_random_state, as_float_array
 from ..utils import check_array
 from ..utils.extmath import fast_dot, fast_logdet, randomized_svd, svd_flip
+from ..utils.extmath import stable_cumsum
 from ..utils.validation import check_is_fitted
 from ..utils.arpack import svds
 
@@ -108,9 +110,15 @@ class PCA(_BasePCA):
     Linear dimensionality reduction using Singular Value Decomposition of the
     data to project it to a lower dimensional space.
 
-    It uses the scipy.linalg ARPACK implementation of the SVD or a randomized
-    SVD by the method of Halko et al. 2009, depending on which is the most
-    efficient.
+    It uses the LAPACK implementation of the full SVD or a randomized truncated
+    SVD by the method of Halko et al. 2009, depending on the shape of the input
+    data and the number of components to extract.
+
+    It can also use the scipy.sparse.linalg ARPACK implementation of the
+    truncated SVD.
+
+    Notice that this class does not support sparse input. See
+    :class:`TruncatedSVD` for an alternative with sparse data.
 
     Read more in the :ref:`User Guide <PCA>`.
 
@@ -147,10 +155,13 @@ class PCA(_BasePCA):
     svd_solver : string {'auto', 'full', 'arpack', 'randomized'}
         auto :
             the solver is selected by a default policy based on `X.shape` and
-            `n_components` which favors 'randomized' when the problem is
-            computationally demanding for 'full' PCA
+            `n_components`: if the input data is larger than 500x500 and the
+            number of components to extract is lower than 80% of the smallest
+            dimension of the data, then the more efficient 'randomized'
+            method is enabled. Otherwise the exact full SVD is computed and
+            optionally truncated afterwards.
         full :
-            run exact SVD calling ARPACK solver via
+            run exact full SVD calling the standard LAPACK solver via
             `scipy.linalg.svd` and select the components by postprocessing
         arpack :
             run SVD truncated to n_components calling ARPACK solver via
@@ -183,10 +194,12 @@ class PCA(_BasePCA):
     components_ : array, [n_components, n_features]
         Principal axes in feature space, representing the directions of
         maximum variance in the data. The components are sorted by
-        explained_variance_.
+        ``explained_variance_``.
 
     explained_variance_ : array, [n_components]
         The amount of variance explained by each of the selected components.
+
+        .. versionadded:: 0.18
 
     explained_variance_ratio_ : array, [n_components]
         Percentage of variance explained by each of the selected components.
@@ -323,6 +336,13 @@ class PCA(_BasePCA):
 
     def _fit(self, X):
         """Dispatch to the right submethod depending on the chosen solver."""
+
+        # Raise an error for sparse input.
+        # This is more informative than the generic one raised by check_array.
+        if issparse(X):
+            raise TypeError('PCA does not support sparse input. See '
+                            'TruncatedSVD for a possible alternative.')
+
         X = check_array(X, dtype=[np.float64], ensure_2d=True,
                         copy=self.copy)
 
@@ -385,7 +405,7 @@ class PCA(_BasePCA):
         elif 0 < n_components < 1.0:
             # number of components for which the cumulated explained
             # variance percentage is superior to the desired threshold
-            ratio_cumsum = explained_variance_ratio_.cumsum()
+            ratio_cumsum = stable_cumsum(explained_variance_ratio_)
             n_components = np.searchsorted(ratio_cumsum, n_components) + 1
 
         # Compute noise covariance using Probabilistic PCA model
@@ -514,7 +534,7 @@ class PCA(_BasePCA):
 
 @deprecated("RandomizedPCA was deprecated in 0.18 and will be removed in 0.20. "
             "Use PCA(svd_solver='randomized') instead. The new implementation "
-            "DOES NOT store whiten components_. Apply transform to get them.")
+            "DOES NOT store whiten ``components_``. Apply transform to get them.")
 class RandomizedPCA(BaseEstimator, TransformerMixin):
     """Principal component analysis (PCA) using randomized SVD
 

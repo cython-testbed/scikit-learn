@@ -9,6 +9,13 @@ of Gaussian Mixture Models.
 #         Fabian Pedregosa <fabian.pedregosa@inria.fr>
 #         Bertrand Thirion <bertrand.thirion@inria.fr>
 
+# Important note for the deprecation cleaning of 0.20 :
+# All the functions and classes of this file have been deprecated in 0.18.
+# When you remove this file please also remove the related files
+# - 'sklearn/mixture/dpgmm.py'
+# - 'sklearn/mixture/test_dpgmm.py'
+# - 'sklearn/mixture/test_gmm.py'
+
 import numpy as np
 from scipy import linalg
 from time import time
@@ -65,6 +72,9 @@ def log_multivariate_normal_density(X, means, covars, covariance_type='diag'):
         X, means, covars)
 
 
+@deprecated("The function sample_gaussian is deprecated in 0.18"
+            " and will be removed in 0.20."
+            " Use numpy.random.multivariate_normal instead.")
 def sample_gaussian(mean, covar, covariance_type='diag', n_samples=1,
                     random_state=None):
     """Generate random samples from a Gaussian distribution.
@@ -74,7 +84,7 @@ def sample_gaussian(mean, covar, covariance_type='diag', n_samples=1,
     mean : array_like, shape (n_features,)
         Mean of the distribution.
 
-    covar : array_like, optional
+    covar : array_like
         Covariance of the distribution. The shape depends on `covariance_type`:
             scalar if 'spherical',
             (n_features) if 'diag',
@@ -89,9 +99,17 @@ def sample_gaussian(mean, covar, covariance_type='diag', n_samples=1,
 
     Returns
     -------
-    X : array, shape (n_features, n_samples)
-        Randomly generated sample
+    X : array
+        Randomly generated sample. The shape depends on `n_samples`:
+        (n_features,) if `1`
+        (n_features, n_samples) otherwise
     """
+    _sample_gaussian(mean, covar, covariance_type='diag', n_samples=1,
+                     random_state=None)
+
+
+def _sample_gaussian(mean, covar, covariance_type='diag', n_samples=1,
+                     random_state=None):
     rng = check_random_state(random_state)
     n_dim = len(mean)
     rand = rng.randn(n_dim, n_samples)
@@ -413,7 +431,7 @@ class _GMMBase(BaseEstimator):
                     cv = self.covars_[comp][0]
                 else:
                     cv = self.covars_[comp]
-                X[comp_in_X] = sample_gaussian(
+                X[comp_in_X] = _sample_gaussian(
                     self.means_[comp], cv, self.covariance_type,
                     num_comp_in_X, random_state=random_state).T
         return X
