@@ -107,7 +107,7 @@ points, ignoring points outside the central mode.
 
 For instance, assuming that the inlier data are Gaussian distributed, it
 will estimate the inlier location and covariance in a robust way (i.e.
-whithout being influenced by outliers). The Mahalanobis distances
+without being influenced by outliers). The Mahalanobis distances
 obtained from this estimate is used to derive a measure of outlyingness.
 This strategy is illustrated below.
 
@@ -145,7 +145,7 @@ number of splittings required to isolate a sample is equivalent to the path
 length from the root node to the terminating node.
 
 This path length, averaged over a forest of such random trees, is a
-measure of abnormality and our decision function.
+measure of normality and our decision function.
 
 Random partitioning produces noticeably shorter paths for anomalies.
 Hence, when a forest of random trees collectively produce shorter path
@@ -220,10 +220,10 @@ This strategy is illustrated below.
 
 .. topic:: Examples:
 
-   * See :ref:`sphx_glr_auto_example_neighbors_plot_lof.py` for
+   * See :ref:`sphx_glr_auto_examples_neighbors_plot_lof.py` for
      an illustration of the use of :class:`neighbors.LocalOutlierFactor`.
 
-   * See :ref:`sphx_glr_auto_example_covariance_plot_outlier_detection.py` for a
+   * See :ref:`sphx_glr_auto_examples_covariance_plot_outlier_detection.py` for a
      comparison with other anomaly detection methods.
 
 .. topic:: References:

@@ -237,6 +237,69 @@ def test_explained_variance():
                               rpca.explained_variance_ratio_, 5)
 
 
+def test_singular_values():
+    # Check that the PCA output has the correct singular values
+
+    rng = np.random.RandomState(0)
+    n_samples = 100
+    n_features = 80
+
+    X = rng.randn(n_samples, n_features)
+
+    pca = PCA(n_components=2, svd_solver='full',
+              random_state=rng).fit(X)
+    apca = PCA(n_components=2, svd_solver='arpack',
+               random_state=rng).fit(X)
+    rpca = PCA(n_components=2, svd_solver='randomized',
+               random_state=rng).fit(X)
+    assert_array_almost_equal(pca.singular_values_, apca.singular_values_, 12)
+    assert_array_almost_equal(pca.singular_values_, rpca.singular_values_, 1)
+    assert_array_almost_equal(apca.singular_values_, rpca.singular_values_, 1)
+
+    # Compare to the Frobenius norm
+    X_pca = pca.transform(X)
+    X_apca = apca.transform(X)
+    X_rpca = rpca.transform(X)
+    assert_array_almost_equal(np.sum(pca.singular_values_**2.0),
+                              np.linalg.norm(X_pca, "fro")**2.0, 12)
+    assert_array_almost_equal(np.sum(apca.singular_values_**2.0),
+                              np.linalg.norm(X_apca, "fro")**2.0, 12)
+    assert_array_almost_equal(np.sum(rpca.singular_values_**2.0),
+                              np.linalg.norm(X_rpca, "fro")**2.0, 0)
+
+    # Compare to the 2-norms of the score vectors
+    assert_array_almost_equal(pca.singular_values_,
+                              np.sqrt(np.sum(X_pca**2.0, axis=0)), 12)
+    assert_array_almost_equal(apca.singular_values_,
+                              np.sqrt(np.sum(X_apca**2.0, axis=0)), 12)
+    assert_array_almost_equal(rpca.singular_values_,
+                              np.sqrt(np.sum(X_rpca**2.0, axis=0)), 2)
+
+    # Set the singular values and see what we get back
+    rng = np.random.RandomState(0)
+    n_samples = 100
+    n_features = 110
+
+    X = rng.randn(n_samples, n_features)
+
+    pca = PCA(n_components=3, svd_solver='full', random_state=rng)
+    apca = PCA(n_components=3, svd_solver='arpack', random_state=rng)
+    rpca = PCA(n_components=3, svd_solver='randomized', random_state=rng)
+    X_pca = pca.fit_transform(X)
+
+    X_pca /= np.sqrt(np.sum(X_pca**2.0, axis=0))
+    X_pca[:, 0] *= 3.142
+    X_pca[:, 1] *= 2.718
+
+    X_hat = np.dot(X_pca, pca.components_)
+    pca.fit(X_hat)
+    apca.fit(X_hat)
+    rpca.fit(X_hat)
+    assert_array_almost_equal(pca.singular_values_, [3.142, 2.718, 1.0], 14)
+    assert_array_almost_equal(apca.singular_values_, [3.142, 2.718, 1.0], 14)
+    assert_array_almost_equal(rpca.singular_values_, [3.142, 2.718, 1.0], 14)
+
+
 def test_pca_check_projection():
     # Test that the projection of data is correct
     rng = np.random.RandomState(0)
@@ -511,8 +574,7 @@ def test_deprecation_randomized_pca():
     assert_array_almost_equal(Y, Y_pca)
 
 
-def test_pca_spase_input():
-
+def test_pca_sparse_input():
     X = np.random.RandomState(0).rand(5, 4)
     X = sp.sparse.csr_matrix(X)
     assert(sp.sparse.issparse(X))
@@ -521,3 +583,9 @@ def test_pca_spase_input():
         pca = PCA(n_components=3, svd_solver=svd_solver)
 
         assert_raises(TypeError, pca.fit, X)
+
+
+def test_pca_bad_solver():
+    X = np.random.RandomState(0).rand(5, 4)
+    pca = PCA(n_components=3, svd_solver='bad_argument')
+    assert_raises(ValueError, pca.fit, X)

@@ -38,7 +38,6 @@ from ..utils.multiclass import unique_labels
 from ..utils.multiclass import type_of_target
 from ..utils.validation import _num_samples
 from ..utils.sparsefuncs import count_nonzero
-from ..utils.fixes import bincount
 from ..exceptions import UndefinedMetricWarning
 
 
@@ -91,6 +90,10 @@ def _check_targets(y_true, y_pred):
     if y_type in ["binary", "multiclass"]:
         y_true = column_or_1d(y_true)
         y_pred = column_or_1d(y_pred)
+        if y_type == "binary":
+            unique_values = np.union1d(y_true, y_pred)
+            if len(unique_values) > 2:
+                y_type = "multiclass"
 
     if y_type.startswith('multilabel'):
         y_true = csr_matrix(y_true)
@@ -236,6 +239,12 @@ def confusion_matrix(y_true, y_pred, labels=None, sample_weight=None):
            [0, 0, 1],
            [1, 0, 2]])
 
+    In the binary case, we can extract true positives, etc as follows:
+
+    >>> tn, fp, fn, tp = confusion_matrix([0, 1, 0, 1], [1, 1, 1, 0]).ravel()
+    >>> (tn, fp, fn, tp)
+    (0, 2, 1, 1)
+
     """
     y_type, y_true, y_pred = _check_targets(y_true, y_pred)
     if y_type not in ("binary", "multiclass"):
@@ -275,7 +284,7 @@ def confusion_matrix(y_true, y_pred, labels=None, sample_weight=None):
     return CM
 
 
-def cohen_kappa_score(y1, y2, labels=None, weights=None):
+def cohen_kappa_score(y1, y2, labels=None, weights=None, sample_weight=None):
     """Cohen's kappa: a statistic that measures inter-annotator agreement.
 
     This function computes Cohen's kappa [1]_, a score that expresses the level
@@ -311,6 +320,9 @@ def cohen_kappa_score(y1, y2, labels=None, weights=None):
         List of weighting type to calculate the score. None means no weighted;
         "linear" means linear weighted; "quadratic" means quadratic weighted.
 
+    sample_weight : array-like of shape = [n_samples], optional
+        Sample weights.
+
     Returns
     -------
     kappa : float
@@ -328,7 +340,8 @@ def cohen_kappa_score(y1, y2, labels=None, weights=None):
     .. [3] `Wikipedia entry for the Cohen's kappa.
             <https://en.wikipedia.org/wiki/Cohen%27s_kappa>`_
     """
-    confusion = confusion_matrix(y1, y2, labels=labels)
+    confusion = confusion_matrix(y1, y2, labels=labels,
+                                 sample_weight=sample_weight)
     n_classes = confusion.shape[0]
     sum0 = np.sum(confusion, axis=0)
     sum1 = np.sum(confusion, axis=1)
@@ -430,10 +443,6 @@ def jaccard_similarity_score(y_true, y_pred, normalize=True,
             pred_or_true = count_nonzero(y_true + y_pred, axis=1)
             pred_and_true = count_nonzero(y_true.multiply(y_pred), axis=1)
             score = pred_and_true / pred_or_true
-
-            # If there is no label, it results in a Nan instead, we set
-            # the jaccard to 1: lim_{x->0} x/x = 1
-            # Note with py2.6 and np 1.3: we can't check safely for nan.
             score[pred_or_true == 0.0] = 1.0
     else:
         score = y_true == y_pred
@@ -714,7 +723,7 @@ def fbeta_score(y_true, y_pred, beta, labels=None, pos_label=1,
     y_pred : 1d array-like, or label indicator array / sparse matrix
         Estimated targets as returned by a classifier.
 
-    beta: float
+    beta : float
         Weight of precision in harmonic mean.
 
     labels : list, optional
@@ -965,7 +974,7 @@ def precision_recall_fscore_support(y_true, y_pred, beta=1.0, labels=None,
     .. [3] `Discriminative Methods for Multi-labeled Classification Advances
            in Knowledge Discovery and Data Mining (2004), pp. 22-30 by Shantanu
            Godbole, Sunita Sarawagi
-           <http://www.godbole.net/shantanu/pubs/multilabelsvm-pakdd04.pdf>`
+           <http://www.godbole.net/shantanu/pubs/multilabelsvm-pakdd04.pdf>`_
 
     Examples
     --------
@@ -1078,16 +1087,16 @@ def precision_recall_fscore_support(y_true, y_pred, beta=1.0, labels=None,
             tp_bins_weights = None
 
         if len(tp_bins):
-            tp_sum = bincount(tp_bins, weights=tp_bins_weights,
+            tp_sum = np.bincount(tp_bins, weights=tp_bins_weights,
                               minlength=len(labels))
         else:
             # Pathological case
             true_sum = pred_sum = tp_sum = np.zeros(len(labels))
         if len(y_pred):
-            pred_sum = bincount(y_pred, weights=sample_weight,
+            pred_sum = np.bincount(y_pred, weights=sample_weight,
                                 minlength=len(labels))
         if len(y_true):
-            true_sum = bincount(y_true, weights=sample_weight,
+            true_sum = np.bincount(y_true, weights=sample_weight,
                                 minlength=len(labels))
 
         # Retain only selected labels
@@ -1369,6 +1378,14 @@ def classification_report(y_true, y_pred, labels=None, target_names=None,
     report : string
         Text summary of the precision, recall, F1 score for each class.
 
+        The reported averages are a prevalence-weighted macro-average across
+        classes (equivalent to :func:`precision_recall_fscore_support` with
+        ``average='weighted'``).
+
+        Note that in binary classification, recall of the positive class
+        is also known as "sensitivity"; recall of the negative class is
+        "specificity".
+
     Examples
     --------
     >>> from sklearn.metrics import classification_report
@@ -1392,45 +1409,44 @@ def classification_report(y_true, y_pred, labels=None, target_names=None,
     else:
         labels = np.asarray(labels)
 
+    if target_names is not None and len(labels) != len(target_names):
+        warnings.warn(
+            "labels size, {0}, does not match size of target_names, {1}"
+            .format(len(labels), len(target_names))
+        )
+
     last_line_heading = 'avg / total'
 
     if target_names is None:
-        target_names = ['%s' % l for l in labels]
+        target_names = [u'%s' % l for l in labels]
     name_width = max(len(cn) for cn in target_names)
     width = max(name_width, len(last_line_heading), digits)
 
     headers = ["precision", "recall", "f1-score", "support"]
-    fmt = '%% %ds' % width  # first column: class name
-    fmt += '  '
-    fmt += ' '.join(['% 9s' for _ in headers])
-    fmt += '\n'
-
-    headers = [""] + headers
-    report = fmt % tuple(headers)
-    report += '\n'
+    head_fmt = u'{:>{width}s} ' + u' {:>9}' * len(headers)
+    report = head_fmt.format(u'', *headers, width=width)
+    report += u'\n\n'
 
     p, r, f1, s = precision_recall_fscore_support(y_true, y_pred,
                                                   labels=labels,
                                                   average=None,
                                                   sample_weight=sample_weight)
 
-    for i, label in enumerate(labels):
-        values = [target_names[i]]
-        for v in (p[i], r[i], f1[i]):
-            values += ["{0:0.{1}f}".format(v, digits)]
-        values += ["{0}".format(s[i])]
-        report += fmt % tuple(values)
+    row_fmt = u'{:>{width}s} ' + u' {:>9.{digits}f}' * 3 + u' {:>9}\n'
+    rows = zip(target_names, p, r, f1, s)
+    for row in rows:
+        report += row_fmt.format(*row, width=width, digits=digits)
 
-    report += '\n'
+    report += u'\n'
 
     # compute averages
-    values = [last_line_heading]
-    for v in (np.average(p, weights=s),
-              np.average(r, weights=s),
-              np.average(f1, weights=s)):
-        values += ["{0:0.{1}f}".format(v, digits)]
-    values += ['{0}'.format(np.sum(s))]
-    report += fmt % tuple(values)
+    report += row_fmt.format(last_line_heading,
+                             np.average(p, weights=s),
+                             np.average(r, weights=s),
+                             np.average(f1, weights=s),
+                             np.sum(s),
+                             width=width, digits=digits)
+
     return report
 
 
@@ -1462,8 +1478,11 @@ def hamming_loss(y_true, y_pred, labels=None, sample_weight=None,
         .. versionadded:: 0.18
 
     classes : array, shape = [n_labels], optional
-        (deprecated) Integer array of labels. This parameter has been
-         renamed to ``labels`` in version 0.18 and will be removed in 0.20.
+        Integer array of labels.
+
+        .. deprecated:: 0.18
+           This parameter has been deprecated in favor of ``labels`` in
+           version 0.18 and will be removed in 0.20. Use ``labels`` instead.
 
     Returns
     -------
