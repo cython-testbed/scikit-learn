@@ -52,7 +52,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
             ${PANDAS_VERSION+pandas=$PANDAS_VERSION}
     fi
     source activate testenv
-    pip install https://github.com/cython/cython/archive/704ba4dabfacd2621b1db59a4182def6a31674cf.zip --install-option=--no-cython-compile
+    pip install https://github.com/cython/cython/archive/498062452e785d146c3e1dc14b57641c5ff64ed5.zip --install-option=--no-cython-compile
 
     # Install nose-timer via pip
     pip install nose-timer
@@ -66,7 +66,7 @@ elif [[ "$DISTRIB" == "ubuntu" ]]; then
     # and scipy
     virtualenv --system-site-packages testvenv
     source testvenv/bin/activate
-    pip install https://github.com/cython/cython/archive/704ba4dabfacd2621b1db59a4182def6a31674cf.zip --install-option=--no-cython-compile
+    pip install https://github.com/cython/cython/archive/498062452e785d146c3e1dc14b57641c5ff64ed5.zip --install-option=--no-cython-compile
     pip install nose nose-timer
 
 elif [[ "$DISTRIB" == "scipy-dev-wheels" ]]; then
@@ -81,7 +81,7 @@ elif [[ "$DISTRIB" == "scipy-dev-wheels" ]]; then
     dev_url=https://7933911d6844c6c53a7d-47bd50c35cd79bd838daf386af554a83.ssl.cf2.rackcdn.com
     pip install --pre --upgrade --timeout=60 -f $dev_url numpy scipy
     pip install nose nose-timer
-    pip install https://github.com/cython/cython/archive/704ba4dabfacd2621b1db59a4182def6a31674cf.zip --install-option=--no-cython-compile
+    pip install https://github.com/cython/cython/archive/498062452e785d146c3e1dc14b57641c5ff64ed5.zip --install-option=--no-cython-compile
 fi
 
 if [[ "$COVERAGE" == "true" ]]; then
