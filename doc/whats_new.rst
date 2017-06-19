@@ -77,10 +77,11 @@ New features
 Enhancements
 ............
 
+   - :func:`metrics.matthews_corrcoef` now support multiclass classification.
+     :issue:`8094` by :user:`Jon Crall <Erotemic>`.
    - Update Sphinx-Gallery from 0.1.4 to 0.1.7 for resolving links in
      documentation build with Sphinx>1.5 :issue:`8010`, :issue:`7986` by
      :user:`Oscar Najera <Titan-C>`
-
    - :class:`multioutput.MultiOutputRegressor` and :class:`multioutput.MultiOutputClassifier`
      now support online learning using `partial_fit`.
      issue: `8053` by :user:`Peng Yu <yupbank>`.
@@ -202,10 +203,15 @@ Enhancements
 
    - Prevent cast from float32 to float64 in
      :class:`linear_model.Ridge` when using svd, sparse_cg, cholesky or lsqr solvers
+     :class:`sklearn.linear_model.Ridge` when using svd, sparse_cg, cholesky or lsqr solvers
      by :user:`Joan Massich <massich>`, :user:`Nicolas Cordier <ncordier>`
 
    - Add ``max_train_size`` parameter to :class:`model_selection.TimeSeriesSplit`
      :issue:`8282` by :user:`Aman Dalmia <dalmia>`.
+
+   - Make it possible to load a chunk of an svmlight formatted file by
+     passing a range of bytes to :func:`datasets.load_svmlight_file`.
+     :issue:`935` by :user:`Olivier Grisel <ogrisel>`.
 
 Bug fixes
 .........
@@ -252,6 +258,10 @@ Bug fixes
 
    - Fixed a bug where :func:`linear_model.RANSACRegressor.fit` may run until
      ``max_iter`` if finds a large inlier group early. :issue:`8251` by :user:`aivision2020`.
+
+   - Fixed a bug where :class:`sklearn.naive_bayes.MultinomialNB` and :class:`sklearn.naive_bayes.BernoulliNB`
+     failed when `alpha=0`. :issue:`5814` by :user:`Yichuan Liu <yl565>` and 
+     :user:`Herilalaina Rakotoarison <herilalaina>`.
 
    - Fixed a bug where :func:`datasets.make_moons` gives an
      incorrect result when ``n_samples`` is odd.
@@ -393,6 +403,10 @@ Bug fixes
    - Fixed a bug where :func:`model_selection.validation_curve`
      reused the same estimator for each parameter value.
      :issue:`7365` by :user:`Aleksandr Sandrovskii <Sundrique>`.
+
+   - Fixed an integer overflow bug in :func:`metrics.confusion_matrix` and
+     hence :func:`metrics.cohen_kappa_score`. :issue:`8354`, :issue:`7929`
+     by `Joel Nothman`_ and :user:`Jon Crall <Erotemic>`.
 
 API changes summary
 -------------------
