@@ -74,9 +74,8 @@ fi
 
 if [[ "$CIRCLE_BRANCH" =~ ^master$|^[0-9]+\.[0-9]+\.X$ && -z "$CI_PULL_REQUEST" ]]
 then
-    # nonstopmode is used to not wait for CI timeout in case of an error
     # PDF linked into HTML
-    MAKE_TARGET="dist LATEXMKOPTS=--interaction=nonstopmode"
+    MAKE_TARGET="dist LATEXMKOPTS=-halt-on-error"
 elif [[ "$build_type" =~ ^QUICK ]]
 then
 	MAKE_TARGET=html-noplot
@@ -90,7 +89,8 @@ sudo -E apt-get -yq update
 sudo -E apt-get -yq remove texlive-binaries --purge
 sudo -E apt-get -yq --no-install-suggests --no-install-recommends --force-yes \
     install dvipng texlive-latex-base texlive-latex-extra \
-    texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
+    texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended\
+    latexmk
 
 # deactivate circleci virtualenv and setup a miniconda env instead
 if [[ `type -t deactivate` ]]; then
