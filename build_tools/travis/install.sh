@@ -39,21 +39,29 @@ if [[ "$DISTRIB" == "conda" ]]; then
 
     # Configure the conda environment and put it in the path using the
     # provided versions
+    if [[ "$USE_PYTEST" == "true" ]]; then
+        TEST_RUNNER_PACKAGE=pytest
+    else
+        TEST_RUNNER_PACKAGE=nose
+    fi
+
     if [[ "$INSTALL_MKL" == "true" ]]; then
-        conda create -n testenv --yes python=$PYTHON_VERSION pip nose pytest \
-            numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION \
+        conda create -n testenv --yes python=$PYTHON_VERSION pip \
+            $TEST_RUNNER_PACKAGE numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION \
             ${PANDAS_VERSION+pandas=$PANDAS_VERSION}
 
     else
-        conda create -n testenv --yes python=$PYTHON_VERSION pip nose pytest \
-            numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION \
+        conda create -n testenv --yes python=$PYTHON_VERSION pip \
+            $TEST_RUNNER_PACKAGE numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION \
             ${PANDAS_VERSION+pandas=$PANDAS_VERSION}
     fi
     source activate testenv
     pip install https://github.com/cython/cython/archive/557fd54ae9308a087993ebc66be0c58bf7f33040.zip --install-option=--no-cython-compile
 
-    # Install nose-timer via pip
-    pip install nose-timer
+    if [[ $USE_PYTEST != "true" ]]; then
+        # Install nose-timer via pip
+        pip install nose-timer
+    fi
 
 elif [[ "$DISTRIB" == "ubuntu" ]]; then
     # At the time of writing numpy 1.9.1 is included in the travis
