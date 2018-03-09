@@ -61,7 +61,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
 
     conda create -n testenv --yes $TO_INSTALL
     source activate testenv
-    pip install https://github.com/cython/cython/archive/ffa1a1989157550ed7763b8668f357854c1283b3.zip --install-option=--no-cython-compile
+    pip install https://github.com/cython/cython/archive/5b8315f70d30282c2c752a6b4ad4bf7c8e3c3d31.zip --install-option=--no-cython-compile
 
 elif [[ "$DISTRIB" == "ubuntu" ]]; then
     # At the time of writing numpy 1.9.1 is included in the travis
@@ -72,7 +72,7 @@ elif [[ "$DISTRIB" == "ubuntu" ]]; then
     # and scipy
     virtualenv --system-site-packages testvenv
     source testvenv/bin/activate
-    pip install https://github.com/cython/cython/archive/ffa1a1989157550ed7763b8668f357854c1283b3.zip --install-option=--no-cython-compile
+    pip install https://github.com/cython/cython/archive/5b8315f70d30282c2c752a6b4ad4bf7c8e3c3d31.zip --install-option=--no-cython-compile
     pip install pytest pytest-cov
 
 elif [[ "$DISTRIB" == "scipy-dev-wheels" ]]; then
@@ -85,7 +85,7 @@ elif [[ "$DISTRIB" == "scipy-dev-wheels" ]]; then
 
     echo "Installing numpy and scipy master wheels"
     dev_url=https://7933911d6844c6c53a7d-47bd50c35cd79bd838daf386af554a83.ssl.cf2.rackcdn.com
-    pip install https://github.com/cython/cython/archive/ffa1a1989157550ed7763b8668f357854c1283b3.zip --install-option=--no-cython-compile
+    pip install https://github.com/cython/cython/archive/5b8315f70d30282c2c752a6b4ad4bf7c8e3c3d31.zip --install-option=--no-cython-compile
     pip install --pre --upgrade --timeout=60 -f $dev_url numpy scipy pandas cython
     pip install pytest pytest-cov
 fi
