@@ -101,13 +101,13 @@ For instance, in the case of the digits dataset, ``digits.data`` gives
 access to the features that can be used to classify the digits samples::
 
   >>> print(digits.data)  # doctest: +NORMALIZE_WHITESPACE
-  [[  0.   0.   5. ...,   0.   0.   0.]
-   [  0.   0.   0. ...,  10.   0.   0.]
-   [  0.   0.   0. ...,  16.   9.   0.]
-   ...,
-   [  0.   0.   1. ...,   6.   0.   0.]
-   [  0.   0.   2. ...,  12.   0.   0.]
-   [  0.   0.  10. ...,  12.   1.   0.]]
+  [[ 0.   0.   5. ...   0.   0.   0.]
+   [ 0.   0.   0. ...  10.   0.   0.]
+   [ 0.   0.   0. ...  16.   9.   0.]
+   ...
+   [ 0.   0.   1. ...   6.   0.   0.]
+   [ 0.   0.   2. ...  12.   0.   0.]
+   [ 0.   0.  10. ...  12.   1.   0.]]
 
 and ``digits.target`` gives the ground truth for the digit dataset, that
 is the number corresponding to each digit image that we are trying to
@@ -123,7 +123,7 @@ learn::
     digits, each original sample is an image of shape ``(8, 8)`` and can be
     accessed using::
 
-      >>> digits.images[0]
+      >>> digits.images[0]  # doctest: +NORMALIZE_WHITESPACE
       array([[  0.,   0.,   5.,  13.,   9.,   1.,   0.,   0.],
              [  0.,   0.,  13.,  15.,  10.,  15.,   5.,   0.],
              [  0.,   3.,  15.,   2.,   0.,  11.,   8.,   0.],
@@ -239,12 +239,12 @@ which is more efficient on big data but it can only pickle to the disk
 and not to a string::
 
   >>> from sklearn.externals import joblib
-  >>> joblib.dump(clf, 'filename.pkl') # doctest: +SKIP
+  >>> joblib.dump(clf, 'filename.joblib') # doctest: +SKIP
 
 Later, you can reload the pickled model (possibly in another Python process)
 with::
 
-  >>> clf = joblib.load('filename.pkl') # doctest:+SKIP
+  >>> clf = joblib.load('filename.joblib') # doctest:+SKIP
 
 .. note::
 
@@ -318,8 +318,8 @@ Refitting and updating parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Hyper-parameters of an estimator can be updated after it has been constructed
-via the :func:`sklearn.pipeline.Pipeline.set_params` method. Calling ``fit()``
-more than once will overwrite what was learned by any previous ``fit()``::
+via the :term:`set_params()<set_params>` method. Calling ``fit()`` more than
+once will overwrite what was learned by any previous ``fit()``::
 
   >>> import numpy as np
   >>> from sklearn.svm import SVC
@@ -346,9 +346,10 @@ more than once will overwrite what was learned by any previous ``fit()``::
   >>> clf.predict(X_test)
   array([1, 0, 1, 1, 0])
 
-Here, the default kernel ``rbf`` is first changed to ``linear`` after the
-estimator has been constructed via ``SVC()``, and changed back to ``rbf`` to
-refit the estimator and to make a second prediction.
+Here, the default kernel ``rbf`` is first changed to ``linear`` via
+:func:`SVC.set_params()<sklearn.svm.SVC.set_params>` after the estimator has
+been constructed, and changed back to ``rbf`` to refit the estimator and to
+make a second prediction.
 
 Multiclass vs. multilabel fitting
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
