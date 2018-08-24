@@ -76,7 +76,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
     fi
 
     conda remove -y Cython
-    pip install https://github.com/cython/cython/archive/d902b7cf24eba5bc5be9e8001d639abd912adf6d.zip --install-option=--no-cython-compile
+    pip install https://github.com/cython/cython/archive/1834457912db7c810eb74dad41ee51241c4d0261.zip --install-option=--no-cython-compile
 
 elif [[ "$DISTRIB" == "ubuntu" ]]; then
     # At the time of writing numpy 1.9.1 is included in the travis
@@ -87,7 +87,7 @@ elif [[ "$DISTRIB" == "ubuntu" ]]; then
     # and scipy
     virtualenv --system-site-packages testvenv
     source testvenv/bin/activate
-    pip install https://github.com/cython/cython/archive/d902b7cf24eba5bc5be9e8001d639abd912adf6d.zip --install-option=--no-cython-compile
+    pip install https://github.com/cython/cython/archive/1834457912db7c810eb74dad41ee51241c4d0261.zip --install-option=--no-cython-compile
     pip install pytest pytest-cov
 
 elif [[ "$DISTRIB" == "scipy-dev" ]]; then
@@ -96,7 +96,7 @@ elif [[ "$DISTRIB" == "scipy-dev" ]]; then
 
     echo "Installing numpy and scipy master wheels"
     dev_url=https://7933911d6844c6c53a7d-47bd50c35cd79bd838daf386af554a83.ssl.cf2.rackcdn.com
-    pip install https://github.com/cython/cython/archive/d902b7cf24eba5bc5be9e8001d639abd912adf6d.zip --install-option=--no-cython-compile
+    pip install https://github.com/cython/cython/archive/1834457912db7c810eb74dad41ee51241c4d0261.zip --install-option=--no-cython-compile
     pip install --pre --upgrade --timeout=60 -f $dev_url numpy scipy pandas cython
     echo "Installing joblib master"
     pip install https://github.com/joblib/joblib/archive/master.zip
