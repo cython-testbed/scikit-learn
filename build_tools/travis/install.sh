@@ -76,7 +76,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
     fi
 
     conda remove -y Cython
-    pip install https://github.com/cython/cython/archive/a47d63eba1b53c3994dc63990e04e393ca20c152.zip --install-option=--no-cython-compile
+    pip install https://github.com/cython/cython/archive/0dcb5d1930e573caa8494fe838c4c2cd4e2041f2.zip --install-option=--no-cython-compile
 
 elif [[ "$DISTRIB" == "ubuntu" ]]; then
     # At the time of writing numpy 1.9.1 is included in the travis
@@ -92,7 +92,7 @@ elif [[ "$DISTRIB" == "ubuntu" ]]; then
     # To test these numpy/scipy versions, we use pytest<3.8 as it has
     # a known limitation/bug of not capturing warnings during test collection.
     pip install pytest==3.7.4 pytest-cov cython==$CYTHON_VERSION
-    pip install https://github.com/cython/cython/archive/a47d63eba1b53c3994dc63990e04e393ca20c152.zip --install-option=--no-cython-compile
+    pip install https://github.com/cython/cython/archive/0dcb5d1930e573caa8494fe838c4c2cd4e2041f2.zip --install-option=--no-cython-compile
 
 elif [[ "$DISTRIB" == "scipy-dev" ]]; then
     make_conda python=3.7
@@ -101,7 +101,7 @@ elif [[ "$DISTRIB" == "scipy-dev" ]]; then
     echo "Installing numpy and scipy master wheels"
     dev_url=https://7933911d6844c6c53a7d-47bd50c35cd79bd838daf386af554a83.ssl.cf2.rackcdn.com
     pip install --pre --upgrade --timeout=60 -f $dev_url numpy scipy pandas cython
-    pip install https://github.com/cython/cython/archive/a47d63eba1b53c3994dc63990e04e393ca20c152.zip --install-option=--no-cython-compile
+    pip install https://github.com/cython/cython/archive/0dcb5d1930e573caa8494fe838c4c2cd4e2041f2.zip --install-option=--no-cython-compile
     echo "Installing joblib master"
     pip install https://github.com/joblib/joblib/archive/master.zip
     export SKLEARN_SITE_JOBLIB=1
